@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Wishlist – SmartSalary</title>
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="nav-brand">💰 SmartSalary</div>
+    <div class="nav-links"><a href="home.html">Logout</a></div>
+  </nav>
+
+  <div class="app-layout">
+    <aside class="sidebar">
+      <a href="dashboard.html"><span class="icon">🏠</span> Dashboard</a>
+      <a href="allocation.html"><span class="icon">📊</span> Allocation</a>
+      <a href="expenses.html"><span class="icon">💸</span> Expenses</a>
+      <a href="goals.html"><span class="icon">🎯</span> Goals</a>
+      <a href="wishlist.html" class="active"><span class="icon">⭐</span> Wishlist</a>
+      <a href="reports.html"><span class="icon">📈</span> Reports</a>
+    </aside>
+
+    <main class="main-content">
+      <div class="page-header">
+        <h1>Wishlist</h1>
+        <p>Track luxury items you want to buy</p>
+      </div>
+
+      <!-- Add Wish Form -->
+      <div class="card" style="margin-bottom:1.5rem">
+        <h3 style="margin-bottom:1rem;font-size:1rem">Add Wish Item</h3>
+        <div style="display:flex;gap:1rem;flex-wrap:wrap;align-items:flex-end">
+          <div class="form-group" style="margin:0;flex:1;min-width:160px">
+            <label>Item Name</label>
+            <input type="text" class="form-control" id="wishName" placeholder="e.g. MacBook Pro"/>
+          </div>
+          <div class="form-group" style="margin:0;flex:1;min-width:140px">
+            <label>Price (₹)</label>
+            <input type="number" class="form-control" id="wishPrice" placeholder="e.g. 150000" min="0"/>
+          </div>
+          <button class="btn btn-primary" onclick="addWish()">+ Add</button>
+        </div>
+      </div>
+
+      <!-- Summary -->
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+        <span style="color:var(--text-muted);font-size:0.875rem" id="wishCount">0 items</span>
+        <span>Total: <strong id="wishTotal">₹0</strong></span>
+      </div>
+
+      <!-- Wishlist Grid -->
+      <div class="wishlist-grid" id="wishGrid">
+        <p style="color:var(--text-muted)">Your wishlist is empty.</p>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/charts.js"></script>
+  <script>
+    function getWishes() { return JSON.parse(localStorage.getItem('ssm_wishlist') || '[]'); }
+    function saveWishes(list) { localStorage.setItem('ssm_wishlist', JSON.stringify(list)); }
+
+    function addWish() {
+      const name = document.getElementById('wishName').value.trim();
+      const price = parseFloat(document.getElementById('wishPrice').value);
+      if (!name || !price || price <= 0) return alert('Please fill in all fields.');
+      const list = getWishes();
+      list.push({ id: Date.now(), name, price });
+      saveWishes(list);
+      document.getElementById('wishName').value = '';
+      document.getElementById('wishPrice').value = '';
+      renderWishes();
+    }
+
+    function deleteWish(id) {
+      saveWishes(getWishes().filter(w => w.id !== id));
+      renderWishes();
+    }
+
+    function renderWishes() {
+      const list = getWishes();
+      const grid = document.getElementById('wishGrid');
+      const total = list.reduce((s, w) => s + w.price, 0);
+
+      document.getElementById('wishCount').textContent = list.length + ' item' + (list.length !== 1 ? 's' : '');
+      document.getElementById('wishTotal').textContent = fmt(total);
+
+      if (list.length === 0) {
+        grid.innerHTML = '<p style="color:var(--text-muted)">Your wishlist is empty.</p>';
+        return;
+      }
+
+      grid.innerHTML = list.map(w => `
+        <div class="wish-card">
+          <button class="wish-delete" onclick="deleteWish(${w.id})">✕</button>
+          <div class="wish-name">⭐ ${w.name}</div>
+          <div class="wish-price">${fmt(w.price)}</div>
+        </div>`).join('');
+    }
+
+    renderWishes();
+  </script>
+</body>
+</html>

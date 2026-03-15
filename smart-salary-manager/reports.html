@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Reports – SmartSalary</title>
+  <link rel="stylesheet" href="css/style.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="nav-brand">💰 SmartSalary</div>
+    <div class="nav-links"><a href="home.html">Logout</a></div>
+  </nav>
+
+  <div class="app-layout">
+    <aside class="sidebar">
+      <a href="dashboard.html"><span class="icon">🏠</span> Dashboard</a>
+      <a href="allocation.html"><span class="icon">📊</span> Allocation</a>
+      <a href="expenses.html"><span class="icon">💸</span> Expenses</a>
+      <a href="goals.html"><span class="icon">🎯</span> Goals</a>
+      <a href="wishlist.html"><span class="icon">⭐</span> Wishlist</a>
+      <a href="reports.html" class="active"><span class="icon">📈</span> Reports</a>
+    </aside>
+
+    <main class="main-content">
+      <div class="page-header">
+        <h1>Reports & Insights</h1>
+        <p>Visual overview of your financial health</p>
+      </div>
+
+      <!-- Budget Summary Cards -->
+      <div class="reports-summary" id="summaryRow"></div>
+
+      <!-- Charts Grid -->
+      <div class="charts-grid">
+        <!-- Pie: Salary Split -->
+        <div class="chart-card">
+          <h3>Salary Split</h3>
+          <div class="chart-container">
+            <canvas id="rPieChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Bar: Expenses -->
+        <div class="chart-card">
+          <h3>Expense Breakdown</h3>
+          <div class="chart-container">
+            <canvas id="rBarChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Line: Savings Growth -->
+      <div class="chart-card" style="margin-top:1.5rem">
+        <h3>Savings Growth (6 Months)</h3>
+        <div class="chart-container" style="height:280px">
+          <canvas id="rLineChart"></canvas>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/charts.js"></script>
+  <script>
+    const salary = getSalary();
+    const alloc = getAllocation();
+    const expenses = JSON.parse(localStorage.getItem('ssm_expenses') || '[]');
+    const goals = JSON.parse(localStorage.getItem('ssm_goals') || '[]');
+
+    // ── Budget Summary ──
+    const totalExp = expenses.reduce((s, e) => s + e.amount, 0);
+    const savingsAlloc = ((alloc.Savings / 100) * salary);
+    const investAlloc = ((alloc.Investment / 100) * salary);
+    const remaining = salary - totalExp;
+
+    const summaryData = [
+      { label: 'Monthly Salary', value: fmt(salary) },
+      { label: 'Total Expenses', value: fmt(totalExp) },
+      { label: 'Savings Allocated', value: fmt(savingsAlloc) },
+      { label: 'Investment Allocated', value: fmt(investAlloc) },
+      { label: 'Remaining Balance', value: fmt(Math.max(remaining, 0)) }
+    ];
+
+    document.getElementById('summaryRow').innerHTML = summaryData.map(s => `
+      <div class="summary-item">
+        <div class="s-label">${s.label}</div>
+        <div class="s-value">${s.value}</div>
+      </div>`).join('');
+
+    // ── Pie Chart: Salary Split ──
+    const allocAmounts = CATEGORIES.map(c => ((alloc[c] / 100) * salary));
+    buildDonut(
+      document.getElementById('rPieChart').getContext('2d'),
+      CATEGORIES, allocAmounts, COLOR_VALUES
+    );
+
+    // ── Bar Chart: Expenses by Category ──
+    const grouped = {};
+    expenses.forEach(e => { grouped[e.category] = (grouped[e.category] || 0) + e.amount; });
+    const expLabels = Object.keys(grouped);
+    const expData = Object.values(grouped);
+    const expColors = expLabels.map((_, i) => COLOR_VALUES[i % COLOR_VALUES.length]);
+
+    if (expLabels.length > 0) {
+      buildBar(
+        document.getElementById('rBarChart').getContext('2d'),
+        expLabels, expData, expColors, 'Expenses (₹)'
+      );
+    } else {
+      document.getElementById('rBarChart').parentElement.innerHTML +=
+        '<p style="text-align:center;color:var(--text-muted);margin-top:1rem">No expense data yet</p>';
+    }
+
+    // ── Line Chart: Savings Growth ──
+    const months = ['Jan','Feb','Mar','Apr','May','Jun'];
+    const monthlySavings = months.map((_, i) => savingsAlloc * (i + 1));
+    const monthlyInvest  = months.map((_, i) => investAlloc  * (i + 1));
+
+    buildLine(
+      document.getElementById('rLineChart').getContext('2d'),
+      months,
+      [
+        { label: 'Cumulative Savings', data: monthlySavings, borderColor: '#06b6d4', backgroundColor: '#06b6d422', fill: true },
+        { label: 'Cumulative Investment', data: monthlyInvest, borderColor: '#4f46e5', backgroundColor: '#4f46e522', fill: true }
+      ]
+    );
+  </script>
+</body>
+</html>

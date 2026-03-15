@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard – SmartSalary</title>
+  <link rel="stylesheet" href="css/style.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <nav class="navbar">
+    <div class="nav-brand">💰 SmartSalary</div>
+    <div class="nav-links">
+      <span id="welcomeUser" style="color:var(--text-muted);font-size:0.875rem;margin-right:0.5rem"></span>
+      <a href="home.html" onclick="logout()">Logout</a>
+    </div>
+  </nav>
+
+  <div class="app-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <a href="dashboard.html" class="active"><span class="icon">🏠</span> Dashboard</a>
+      <a href="allocation.html"><span class="icon">📊</span> Allocation</a>
+      <a href="expenses.html"><span class="icon">💸</span> Expenses</a>
+      <a href="goals.html"><span class="icon">🎯</span> Goals</a>
+      <a href="wishlist.html"><span class="icon">⭐</span> Wishlist</a>
+      <a href="reports.html"><span class="icon">📈</span> Reports</a>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <div class="page-header">
+        <h1>Dashboard</h1>
+        <p>Overview of your salary allocation</p>
+      </div>
+
+      <!-- Salary Input -->
+      <div class="card" style="margin-bottom:1.5rem">
+        <div class="salary-input-row">
+          <div class="form-group">
+            <label>Monthly Salary (₹)</label>
+            <input type="number" class="form-control" id="salaryInput" placeholder="e.g. 50000" min="0"/>
+          </div>
+          <button class="btn btn-primary" onclick="applySalary()">Apply</button>
+        </div>
+      </div>
+
+      <!-- Stat Cards -->
+      <div class="stats-grid">
+        <div class="stat-card" style="border-color:#4f46e5">
+          <div class="label">Investment</div>
+          <div class="amount" id="stat_Investment">₹0</div>
+        </div>
+        <div class="stat-card" style="border-color:#06b6d4">
+          <div class="label">Savings</div>
+          <div class="amount" id="stat_Savings">₹0</div>
+        </div>
+        <div class="stat-card" style="border-color:#10b981">
+          <div class="label">Maintenance</div>
+          <div class="amount" id="stat_Maintenance">₹0</div>
+        </div>
+        <div class="stat-card" style="border-color:#f59e0b">
+          <div class="label">Luxury</div>
+          <div class="amount" id="stat_Luxury">₹0</div>
+        </div>
+        <div class="stat-card" style="border-color:#8b5cf6">
+          <div class="label">Education</div>
+          <div class="amount" id="stat_Education">₹0</div>
+        </div>
+        <div class="stat-card" style="border-color:#ef4444">
+          <div class="label">Emergency</div>
+          <div class="amount" id="stat_Emergency">₹0</div>
+        </div>
+      </div>
+
+      <!-- Donut Chart -->
+      <div class="chart-card">
+        <h3>Salary Distribution</h3>
+        <div class="chart-container">
+          <canvas id="salaryChart"></canvas>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/charts.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script>
+    // Show welcome name
+    const user = JSON.parse(localStorage.getItem('ssm_user') || '{}');
+    if (user.name) document.getElementById('welcomeUser').textContent = 'Hi, ' + user.name;
+
+    function logout() { localStorage.removeItem('ssm_logged_in'); }
+
+    initDashboard();
+  </script>
+</body>
+</html>

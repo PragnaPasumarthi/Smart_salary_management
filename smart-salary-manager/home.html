@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Smart Salary Management</title>
+  <link rel="stylesheet" href="css/style.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="nav-brand">💰 SmartSalary</div>
+    <div class="nav-links">
+      <a href="home.html" class="active">Home</a>
+      <a href="login.html">Login</a>
+      <a href="register.html">Register</a>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <h1>Smart Salary Management</h1>
+    <p>Take control of your finances. Allocate your salary wisely, track expenses, set goals, and grow your wealth — all in one place.</p>
+    <div class="hero-btns">
+      <a href="register.html" class="btn btn-white">Get Started Free</a>
+      <a href="login.html" class="btn btn-ghost">Login</a>
+    </div>
+  </section>
+
+  <!-- Feature Cards -->
+  <section class="features-section">
+    <h2>Everything You Need to Manage Your Money</h2>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">📊</div>
+        <h3>Salary Allocation</h3>
+        <p>Divide your salary into smart categories with customizable percentage sliders.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">💸</div>
+        <h3>Expense Tracking</h3>
+        <p>Log and visualize your daily expenses to stay within your budget.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🎯</div>
+        <h3>Financial Goals</h3>
+        <p>Set savings and investment goals and track your progress over time.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📈</div>
+        <h3>Reports & Insights</h3>
+        <p>Get visual reports with charts to understand your financial health.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Sample Pie Chart -->
+  <section class="home-chart-section">
+    <h2>Sample Salary Distribution</h2>
+    <div class="card">
+      <div class="chart-container">
+        <canvas id="homeChart"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    // Sample pie chart showing salary distribution
+    const ctx = document.getElementById('homeChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels: ['Investment', 'Savings', 'Maintenance', 'Luxury', 'Education', 'Emergency'],
+        datasets: [{
+          data: [20, 20, 30, 10, 10, 10],
+          backgroundColor: ['#4f46e5','#06b6d4','#10b981','#f59e0b','#8b5cf6','#ef4444'],
+          borderWidth: 2,
+          borderColor: '#fff'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'bottom', labels: { padding: 16, font: { size: 12 } } }
+        }
+      }
+    });
+  </script>
+</body>
+</html>

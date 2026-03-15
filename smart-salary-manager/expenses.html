@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Expenses – SmartSalary</title>
+  <link rel="stylesheet" href="css/style.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="nav-brand">💰 SmartSalary</div>
+    <div class="nav-links"><a href="home.html">Logout</a></div>
+  </nav>
+
+  <div class="app-layout">
+    <aside class="sidebar">
+      <a href="dashboard.html"><span class="icon">🏠</span> Dashboard</a>
+      <a href="allocation.html"><span class="icon">📊</span> Allocation</a>
+      <a href="expenses.html" class="active"><span class="icon">💸</span> Expenses</a>
+      <a href="goals.html"><span class="icon">🎯</span> Goals</a>
+      <a href="wishlist.html"><span class="icon">⭐</span> Wishlist</a>
+      <a href="reports.html"><span class="icon">📈</span> Reports</a>
+    </aside>
+
+    <main class="main-content">
+      <div class="page-header">
+        <h1>Expense Tracker</h1>
+        <p>Log and monitor your spending</p>
+      </div>
+
+      <!-- Add Expense Form -->
+      <div class="card" style="margin-bottom:1.5rem">
+        <h3 style="margin-bottom:1rem;font-size:1rem">Add New Expense</h3>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;align-items:end">
+          <div class="form-group" style="margin:0">
+            <label>Expense Name</label>
+            <input type="text" class="form-control" id="expName" placeholder="e.g. Groceries"/>
+          </div>
+          <div class="form-group" style="margin:0">
+            <label>Amount (₹)</label>
+            <input type="number" class="form-control" id="expAmount" placeholder="e.g. 2000" min="0"/>
+          </div>
+          <div class="form-group" style="margin:0">
+            <label>Category</label>
+            <select class="form-control" id="expCategory">
+              <option>Maintenance</option>
+              <option>Luxury</option>
+              <option>Education</option>
+              <option>Emergency</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" onclick="addExpense()">+ Add</button>
+        </div>
+      </div>
+
+      <!-- Total & Table -->
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem">
+        <h3 style="font-size:1rem">All Expenses</h3>
+        <span>Total: <strong id="totalExpenses">₹0</strong></span>
+      </div>
+
+      <div class="table-wrapper" style="margin-bottom:1.5rem">
+        <table>
+          <thead>
+            <tr><th>Name</th><th>Category</th><th>Amount</th><th>Action</th></tr>
+          </thead>
+          <tbody id="expTable">
+            <tr><td colspan="4" style="text-align:center;color:var(--text-muted)">No expenses yet</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Bar Chart -->
+      <div class="chart-card">
+        <h3>Expense Distribution by Category</h3>
+        <div class="chart-container">
+          <canvas id="expenseChart"></canvas>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/charts.js"></script>
+  <script src="js/expenses.js"></script>
+  <script>initExpenses();</script>
+</body>
+</html>
