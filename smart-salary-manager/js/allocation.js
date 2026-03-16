@@ -1,5 +1,7 @@
 // ===== ALLOCATION LOGIC =====
 
+let allocChart = null;
+
 function initAllocation() {
   const alloc = getAllocation();
   const salary = getSalary();
@@ -12,6 +14,7 @@ function initAllocation() {
     }
   });
   updateTotal();
+  renderAllocChart();
 }
 
 function updateSliderDisplay(cat, pct, salary) {
@@ -26,6 +29,7 @@ function onSliderChange(cat) {
   const slider = document.getElementById('slider_' + cat);
   updateSliderDisplay(cat, parseInt(slider.value));
   updateTotal();
+  renderAllocChart();   // live chart update on every slider move
 }
 
 function updateTotal() {
@@ -46,11 +50,31 @@ function updateTotal() {
   document.getElementById('saveAllocBtn').disabled = total !== 100;
 }
 
+// Render/update the live donut chart from current slider values
+function renderAllocChart() {
+  const salary = getSalary();
+  const data = CATEGORIES.map(cat => {
+    const slider = document.getElementById('slider_' + cat);
+    return slider ? ((parseInt(slider.value) / 100) * salary) : 0;
+  });
+
+  const ctx = document.getElementById('allocChart').getContext('2d');
+
+  if (allocChart) {
+    // Update existing chart data in-place for smooth animation
+    allocChart.data.datasets[0].data = data;
+    allocChart.update();
+  } else {
+    allocChart = buildDonut(ctx, CATEGORIES, data, COLOR_VALUES);
+  }
+}
+
 function saveAllocation() {
   const alloc = {};
   CATEGORIES.forEach(cat => {
     alloc[cat] = parseInt(document.getElementById('slider_' + cat).value);
   });
+  // Save to localStorage — dashboard will pick this up on next load / storage event
   localStorage.setItem('ssm_allocation', JSON.stringify(alloc));
-  alert('✅ Allocation saved successfully!');
+  alert('✅ Allocation saved! Dashboard chart updated.');
 }

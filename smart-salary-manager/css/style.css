@@ -466,6 +466,10 @@ input[type="range"] {
 .summary-item .s-label { font-size: 0.8rem; color: var(--text-muted); font-weight: 500; }
 .summary-item .s-value { font-size: 1.5rem; font-weight: 700; color: var(--primary); margin-top: 0.25rem; }
 
+@media (max-width: 900px) {
+  .alloc-grid { grid-template-columns: 1fr !important; }
+}
+
 /* ===== RESPONSIVE ===== */
 @media (max-width: 768px) {
   .sidebar { display: none; }

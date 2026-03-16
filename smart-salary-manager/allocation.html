@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Allocation – SmartSalary</title>
   <link rel="stylesheet" href="css/style.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
@@ -31,24 +32,38 @@
         <p>Adjust the percentage for each category. Total must equal 100%.</p>
       </div>
 
-      <div class="card">
-        <!-- Total Progress -->
-        <div class="total-indicator">
-          <span>Total Allocated:</span>
-          <strong id="totalLabel">100%</strong>
-          <div style="flex:1">
-            <div class="progress-bar-wrap">
-              <div class="progress-bar-fill done" id="totalBar" style="width:100%"></div>
+      <!-- Two-column layout: sliders left, live chart right -->
+      <div style="display:grid;grid-template-columns:1fr 340px;gap:1.5rem;align-items:start" class="alloc-grid">
+
+        <div class="card">
+          <!-- Total Progress -->
+          <div class="total-indicator">
+            <span>Total Allocated:</span>
+            <strong id="totalLabel">100%</strong>
+            <div style="flex:1">
+              <div class="progress-bar-wrap">
+                <div class="progress-bar-fill done" id="totalBar" style="width:100%"></div>
+              </div>
             </div>
           </div>
+
+          <!-- Sliders -->
+          <div id="sliders"></div>
+
+          <button class="btn btn-primary" id="saveAllocBtn" onclick="saveAllocation()" style="margin-top:1rem">
+            💾 Save Allocation
+          </button>
         </div>
 
-        <!-- Sliders -->
-        <div id="sliders"></div>
+        <!-- Live Donut Chart -->
+        <div class="chart-card" style="position:sticky;top:80px">
+          <h3>Live Preview</h3>
+          <div class="chart-container">
+            <canvas id="allocChart"></canvas>
+          </div>
+          <div id="allocAmountSummary" style="margin-top:1rem;display:grid;grid-template-columns:1fr 1fr;gap:0.4rem"></div>
+        </div>
 
-        <button class="btn btn-primary" id="saveAllocBtn" onclick="saveAllocation()" style="margin-top:1rem">
-          💾 Save Allocation
-        </button>
       </div>
     </main>
   </div>
@@ -71,6 +86,23 @@
         </div>`;
     });
     initAllocation();
+
+    // Patch renderAllocChart to also refresh the mini amount summary below the chart
+    const _origRender = renderAllocChart;
+    renderAllocChart = function() {
+      _origRender();
+      const salary = getSalary();
+      const summary = document.getElementById('allocAmountSummary');
+      if (!summary) return;
+      summary.innerHTML = CATEGORIES.map((cat, i) => {
+        const pct = parseInt(document.getElementById('slider_' + cat).value || 0);
+        return `<div style="font-size:0.78rem;display:flex;justify-content:space-between;padding:0.2rem 0;border-bottom:1px solid var(--border)">
+          <span style="color:${COLOR_VALUES[i]};font-weight:600">${cat}</span>
+          <span>${fmt((pct/100)*salary)}</span>
+        </div>`;
+      }).join('');
+    };
+    renderAllocChart(); // trigger once to populate summary
   </script>
 </body>
 </html>

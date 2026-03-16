@@ -64,68 +64,97 @@
 
   <script src="js/charts.js"></script>
   <script>
-    const salary = getSalary();
-    const alloc = getAllocation();
-    const expenses = JSON.parse(localStorage.getItem('ssm_expenses') || '[]');
-    const goals = JSON.parse(localStorage.getItem('ssm_goals') || '[]');
+    let rPieChart = null, rBarChart = null, rLineChart = null;
 
-    // ── Budget Summary ──
-    const totalExp = expenses.reduce((s, e) => s + e.amount, 0);
-    const savingsAlloc = ((alloc.Savings / 100) * salary);
-    const investAlloc = ((alloc.Investment / 100) * salary);
-    const remaining = salary - totalExp;
+    function renderReports() {
+      // Always read fresh from localStorage
+      const salary  = getSalary();
+      const alloc   = getAllocation();
+      const expenses = JSON.parse(localStorage.getItem('ssm_expenses') || '[]');
 
-    const summaryData = [
-      { label: 'Monthly Salary', value: fmt(salary) },
-      { label: 'Total Expenses', value: fmt(totalExp) },
-      { label: 'Savings Allocated', value: fmt(savingsAlloc) },
-      { label: 'Investment Allocated', value: fmt(investAlloc) },
-      { label: 'Remaining Balance', value: fmt(Math.max(remaining, 0)) }
-    ];
+      // ── Budget Summary ──
+      const totalExp    = expenses.reduce((s, e) => s + e.amount, 0);
+      const savingsAlloc = (alloc.Savings    / 100) * salary;
+      const investAlloc  = (alloc.Investment / 100) * salary;
+      const remaining    = Math.max(salary - totalExp, 0);
 
-    document.getElementById('summaryRow').innerHTML = summaryData.map(s => `
-      <div class="summary-item">
-        <div class="s-label">${s.label}</div>
-        <div class="s-value">${s.value}</div>
-      </div>`).join('');
+      document.getElementById('summaryRow').innerHTML = [
+        { label: 'Monthly Salary',      value: fmt(salary) },
+        { label: 'Total Expenses',       value: fmt(totalExp) },
+        { label: 'Savings Allocated',    value: fmt(savingsAlloc) + ' (' + alloc.Savings + '%)' },
+        { label: 'Investment Allocated', value: fmt(investAlloc)  + ' (' + alloc.Investment + '%)' },
+        { label: 'Remaining Balance',    value: fmt(remaining) }
+      ].map(s => `
+        <div class="summary-item">
+          <div class="s-label">${s.label}</div>
+          <div class="s-value">${s.value}</div>
+        </div>`).join('');
 
-    // ── Pie Chart: Salary Split ──
-    const allocAmounts = CATEGORIES.map(c => ((alloc[c] / 100) * salary));
-    buildDonut(
-      document.getElementById('rPieChart').getContext('2d'),
-      CATEGORIES, allocAmounts, COLOR_VALUES
-    );
+      // ── Pie Chart: Salary Split (uses saved allocation %) ──
+      const allocAmounts = CATEGORIES.map(c => (alloc[c] / 100) * salary);
+      if (rPieChart) {
+        rPieChart.data.datasets[0].data = allocAmounts;
+        rPieChart.update();
+      } else {
+        rPieChart = buildDonut(
+          document.getElementById('rPieChart').getContext('2d'),
+          CATEGORIES, allocAmounts, COLOR_VALUES
+        );
+      }
 
-    // ── Bar Chart: Expenses by Category ──
-    const grouped = {};
-    expenses.forEach(e => { grouped[e.category] = (grouped[e.category] || 0) + e.amount; });
-    const expLabels = Object.keys(grouped);
-    const expData = Object.values(grouped);
-    const expColors = expLabels.map((_, i) => COLOR_VALUES[i % COLOR_VALUES.length]);
+      // ── Bar Chart: Expenses by Category ──
+      const grouped = {};
+      expenses.forEach(e => { grouped[e.category] = (grouped[e.category] || 0) + e.amount; });
+      const expLabels = Object.keys(grouped);
+      const expData   = Object.values(grouped);
+      const expColors = expLabels.map((_, i) => COLOR_VALUES[i % COLOR_VALUES.length]);
+      const barCtx    = document.getElementById('rBarChart').getContext('2d');
 
-    if (expLabels.length > 0) {
-      buildBar(
-        document.getElementById('rBarChart').getContext('2d'),
-        expLabels, expData, expColors, 'Expenses (₹)'
-      );
-    } else {
-      document.getElementById('rBarChart').parentElement.innerHTML +=
-        '<p style="text-align:center;color:var(--text-muted);margin-top:1rem">No expense data yet</p>';
+      if (rBarChart) rBarChart.destroy();
+      if (expLabels.length > 0) {
+        rBarChart = buildBar(barCtx, expLabels, expData, expColors, 'Expenses (₹)');
+      } else {
+        // Show empty state message
+        const wrap = document.getElementById('rBarChart').parentElement;
+        const msg  = wrap.querySelector('.no-data');
+        if (!msg) {
+          const p = document.createElement('p');
+          p.className = 'no-data';
+          p.style.cssText = 'text-align:center;color:var(--text-muted);margin-top:1rem;font-size:0.875rem';
+          p.textContent = 'No expense data yet';
+          wrap.appendChild(p);
+        }
+      }
+
+      // ── Line Chart: Cumulative Savings & Investment Growth ──
+      const months = ['Jan','Feb','Mar','Apr','May','Jun'];
+      const lineCtx = document.getElementById('rLineChart').getContext('2d');
+      if (rLineChart) rLineChart.destroy();
+      rLineChart = buildLine(lineCtx, months, [
+        {
+          label: 'Cumulative Savings (' + alloc.Savings + '%)',
+          data: months.map((_, i) => savingsAlloc * (i + 1)),
+          borderColor: '#06b6d4', backgroundColor: '#06b6d422', fill: true
+        },
+        {
+          label: 'Cumulative Investment (' + alloc.Investment + '%)',
+          data: months.map((_, i) => investAlloc * (i + 1)),
+          borderColor: '#4f46e5', backgroundColor: '#4f46e522', fill: true
+        }
+      ]);
     }
 
-    // ── Line Chart: Savings Growth ──
-    const months = ['Jan','Feb','Mar','Apr','May','Jun'];
-    const monthlySavings = months.map((_, i) => savingsAlloc * (i + 1));
-    const monthlyInvest  = months.map((_, i) => investAlloc  * (i + 1));
+    // Re-render whenever user navigates back to this page
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') renderReports();
+    });
 
-    buildLine(
-      document.getElementById('rLineChart').getContext('2d'),
-      months,
-      [
-        { label: 'Cumulative Savings', data: monthlySavings, borderColor: '#06b6d4', backgroundColor: '#06b6d422', fill: true },
-        { label: 'Cumulative Investment', data: monthlyInvest, borderColor: '#4f46e5', backgroundColor: '#4f46e522', fill: true }
-      ]
-    );
+    // Also re-render if allocation/salary changes in another tab
+    window.addEventListener('storage', (e) => {
+      if (['ssm_allocation','ssm_salary','ssm_expenses'].includes(e.key)) renderReports();
+    });
+
+    renderReports();
   </script>
 </body>
 </html>
